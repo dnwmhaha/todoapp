@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request,jsonify, abort
+from flask import Flask, render_template,request,jsonify, abort, redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
 import sys
 from flask_migrate import Migrate
@@ -6,7 +6,6 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ethanswoo@localhost:5432/todoapp'
 db = SQLAlchemy(app)
-
 migrate = Migrate(app,db)
 
 class Todo(db.Model):
@@ -18,7 +17,6 @@ class Todo(db.Model):
     def __repr__(self):
         return f'<Todo {self.id} {self.description}>'
 
-#db.create
   
 @app.route('/todos/create', methods=['POST'])
 def create_todo():
@@ -43,9 +41,10 @@ def create_todo():
 def set_completed_todo(todo_id):
     try:
         completed = request.get_json()['completed']
+        print('completed', completed)
         todo = Todo.query.get(todo_id)
         todo.completed = completed
-        db.session.commit() 
+        db.session.commit()
     except:
         db.session.rollback()
     finally:
@@ -55,4 +54,4 @@ def set_completed_todo(todo_id):
 
 @app.route('/')
 def index():
-  return render_template('index.html', data=Todo.query.all())
+  return render_template('index.html', data=Todo.query.order_by('id').all())
